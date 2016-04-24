@@ -17,9 +17,10 @@ unsigned int getExponent(unsigned int operand);
 unsigned int getSignificand(unsigned int operand);
 unsigned int multiply(unsigned int operand1, unsigned int operand2);
 unsigned long long normalize(unsigned long long significand, bool& addOneToExponent);
-unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2, bool addOneToExponent);
+unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2, bool& addOneToExponent);
 unsigned int getExponentSum(unsigned int operand1, unsigned int operand2, bool addOneToExponent);
 unsigned int getNewSign(unsigned int operand1, unsigned int operand2);
+bool isZero(unsigned int operand);
 
 int main() 
 {
@@ -56,27 +57,6 @@ int main()
 	for (; fin >> hex >> operand1 >> operand2;)
 	{
 		unsigned int product;
-
-		//cout << hex << operand1 << " " << operand2 << endl << endl;
-		//cout << bitset<32>(operand1) << " " << bitset<32>(operand2) << endl << endl;
-
-		/*signOp1 = getSign(operand1);
-		signOp2 = getSign(operand2);
-
-		exponentOp1 = getExponent(operand1);
-		exponentOp2 = getExponent(operand2);
-
-		significandOp1 = getSignificand(operand1);
-		significandOp2 = getSignificand(operand2);
-
-		cout << "Sign: " << signOp1 << endl;
-		cout << "Sign: " << signOp2 << endl << endl;
-
-		cout << "Exponent: " << bitset<9>(exponentOp1) << " " << exponentOp1 << endl;
-		cout << "Exponent: " << bitset<9>(exponentOp2) << " " << exponentOp2 << endl << endl;
-
-		cout << "Significand: " << bitset<23>(significandOp1) << " " << significandOp1 << endl;
-		cout << "Significand: " << bitset<23>(significandOp2) << " " << significandOp2 << endl << endl;*/
 
 		cout << hex << uppercase << operand1 << " is equivalent to IEEE: " << scientific << setprecision(7) 
 			<< *(reinterpret_cast<float*>(&operand1)) << endl;
@@ -126,6 +106,9 @@ unsigned int multiply(unsigned int operand1, unsigned int operand2)
 	unsigned int significandProduct;
 	unsigned int exponentSum;
 
+	if (isZero(operand1) || isZero(operand2))
+		return 0;
+
 	significandProduct = getSignificandProduct(operand1, operand2, addOneToExponent);
 	exponentSum = getExponentSum(operand1, operand2, addOneToExponent);
 	newSign = getNewSign(operand1, operand2);
@@ -139,10 +122,10 @@ unsigned long long normalize(unsigned long long significand, bool& addOneToExpon
 {
 	significand = significand << ((sizeof(long long) * 8) - 48);
 
-	if (significand >> (sizeof(long long) - 1) == 1)
+	if (significand >> ((sizeof(long long) * 8) - 1) == 1)
 	{
 		significand = significand << 1;
-		significand = significand >> 24 + ((sizeof(long long) * 8) - 48);
+		significand = significand >> 25 + ((sizeof(long long) * 8) - 48);
 		addOneToExponent = true;
 	}
 	else
@@ -151,23 +134,11 @@ unsigned long long normalize(unsigned long long significand, bool& addOneToExpon
 		significand = significand >> 25 + ((sizeof(long long) * 8) - 48);
 		addOneToExponent = false;
 	}
-	
-	/*for (int x = 0, numShifted = 0; x < (sizeof(long long) * 8); x++, numShifted++)
-	{
-		if ((significand >> (sizeof(long long) * 8) - 1) == 0)
-			significand = significand << 1;
-		else
-		{
-			significand = significand << 1;
-			significand = significand >> 23 + numShifted;
-			break;
-		}
-	}*/
 
 	return significand;
 }
 
-unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2, bool addOneToExponent)
+unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2, bool& addOneToExponent)
 {
 	unsigned int significandOp1;
 	unsigned int significandOp2;
@@ -208,4 +179,13 @@ unsigned int getNewSign(unsigned int operand1, unsigned int operand2)
 		return 0;
 	else
 		return 1;
+}
+
+bool isZero(unsigned int operand)
+{
+	if (getExponent(operand) == 0 && getSignificand(operand) == 0)
+		return true;
+	else
+		return false;
+
 }
