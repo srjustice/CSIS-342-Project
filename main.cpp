@@ -19,6 +19,7 @@ unsigned int multiply(unsigned int operand1, unsigned int operand2);
 unsigned long long normalize(unsigned long long significand, bool& addOneToExponent);
 unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2, bool& addOneToExponent);
 unsigned int getExponentSum(unsigned int operand1, unsigned int operand2, bool addOneToExponent);
+int getSignedExponentSum(unsigned int exponent1, unsigned int exponent2, bool addOneToExponent);
 unsigned int getNewSign(unsigned int operand1, unsigned int operand2);
 bool isZero(unsigned int operand);
 
@@ -63,10 +64,17 @@ int main()
 		cout << hex << uppercase << operand2 << " is equivalent to IEEE: " << scientific << setprecision(7) 
 			<< *(reinterpret_cast<float*>(&operand2)) << endl;
 
-		product = multiply(operand1, operand2);
-
-		cout << "The product is " << hex << uppercase << product << ", which is equivalent to " << scientific << setprecision(7) 
-			<< *(reinterpret_cast<float*>(&product)) << endl << endl;
+		try
+		{
+			product = multiply(operand1, operand2);
+			
+			cout << "The product is " << hex << uppercase << product << ", which is equivalent to " << scientific << setprecision(7)
+				<< *(reinterpret_cast<float*>(&product)) << endl << endl;
+		}
+		catch (exception& error) 
+		{
+			cout << error.what() << endl << endl;
+		}
 	}
 
 	cout << endl << "Enter any key to end execution of this program   . . .   ";
@@ -161,9 +169,17 @@ unsigned int getExponentSum(unsigned int operand1, unsigned int operand2, bool a
 	unsigned int exponentOp1;
 	unsigned int exponentOp2;
 	unsigned int exponentSum;
+	int signedExponentSum;
 	
 	exponentOp1 = getExponent(operand1);
 	exponentOp2 = getExponent(operand2);
+
+	signedExponentSum = getSignedExponentSum(exponentOp1, exponentOp2, addOneToExponent);
+
+	if (signedExponentSum > 254)
+		throw exception("Error: Overflow occurred in the result!");
+	else if (signedExponentSum < 0)
+		throw exception("Error: Underflow occurred in the result!");
 
 	if (addOneToExponent)
 		exponentSum = exponentOp1 + (exponentOp2 - 127) + 1;
@@ -171,6 +187,20 @@ unsigned int getExponentSum(unsigned int operand1, unsigned int operand2, bool a
 		exponentSum = exponentOp1 + (exponentOp2 - 127);
 
 	return exponentSum;
+}
+
+int getSignedExponentSum(unsigned int exponent1, unsigned int exponent2, bool addOneToExponent)
+{
+	int signedExpOp1 = exponent1;
+	int signedExpOp2 = exponent2;
+	int signedSum;
+
+	if (addOneToExponent)
+		signedSum = signedExpOp1 + (signedExpOp2 - 127) + 1;
+	else
+		signedSum = signedExpOp1 + (signedExpOp2 - 127);
+	
+	return signedSum;
 }
 
 unsigned int getNewSign(unsigned int operand1, unsigned int operand2)
