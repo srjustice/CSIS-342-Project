@@ -59,19 +59,19 @@ int main()
 	{
 		unsigned int product;
 
-		cout << hex << uppercase << operand1 << " is equivalent to IEEE: " << scientific << setprecision(7) 
+		cout << hex << uppercase << operand1 << " is equivalent to IEEE: " << scientific << setprecision(7)
 			<< *(reinterpret_cast<float*>(&operand1)) << endl;
-		cout << hex << uppercase << operand2 << " is equivalent to IEEE: " << scientific << setprecision(7) 
+		cout << hex << uppercase << operand2 << " is equivalent to IEEE: " << scientific << setprecision(7)
 			<< *(reinterpret_cast<float*>(&operand2)) << endl;
 
 		try
 		{
 			product = multiply(operand1, operand2);
-			
+
 			cout << "The product is " << hex << uppercase << product << ", which is equivalent to " << scientific << setprecision(7)
 				<< *(reinterpret_cast<float*>(&product)) << endl << endl;
 		}
-		catch (exception& error) 
+		catch (exception& error)
 		{
 			cout << error.what() << endl << endl;
 		}
@@ -83,7 +83,7 @@ int main()
 	return 0;
 }
 
-unsigned int getSign(unsigned int operand) 
+unsigned int getSign(unsigned int operand)
 {
 	return operand >> SIGNSHIFT;
 }
@@ -91,7 +91,7 @@ unsigned int getSign(unsigned int operand)
 unsigned int getExponent(unsigned int operand)
 {
 	int masked;
-	
+
 	masked = operand & EXPONENTMASK;
 
 	return masked >> EXPONENTSHIFT;
@@ -109,7 +109,7 @@ unsigned int getSignificand(unsigned int operand)
 unsigned int multiply(unsigned int operand1, unsigned int operand2)
 {
 	bool addOneToExponent = false;
-	
+
 	unsigned int newSign;
 	unsigned int significandProduct;
 	unsigned int exponentSum;
@@ -128,7 +128,7 @@ unsigned int multiply(unsigned int operand1, unsigned int operand2)
 
 unsigned long long normalize(unsigned long long significand, bool& addOneToExponent)
 {
-	significand = significand << ((sizeof(long long) * 8) - 48);
+	/*significand = significand << ((sizeof(long long) * 8) - 48);
 
 	if (significand >> ((sizeof(long long) * 8) - 1) == 1)
 	{
@@ -140,6 +140,62 @@ unsigned long long normalize(unsigned long long significand, bool& addOneToExpon
 	{
 		significand = significand << 2;
 		significand = significand >> 25 + ((sizeof(long long) * 8) - 48);
+		addOneToExponent = false;
+	}
+
+	return significand;*/
+
+	if ((significand & 0x800000000000) >> 47 == 1)
+	{
+		significand = significand & 0x7FFFFFFFFFFF;
+
+		if ((significand & 0xFFFFFF) > 0x800000)
+		{
+			significand = significand >> 24;
+			significand++;
+		}
+		else if ((significand & 0xFFFFFF) == 0x800000)
+		{
+			if ((significand & 0x1000000) == 1)
+			{
+				significand = significand >> 24;
+				significand++;
+			}
+			else
+				significand = significand >> 24;
+		}
+		else
+		{
+			significand = significand >> 24;
+		}
+		
+		addOneToExponent = true;
+	}
+	else
+	{
+
+		significand = significand & 0x3FFFFFFFFFFF;
+		
+		if ((significand & 0x7FFFFF) > 0x400000)
+		{
+			significand = significand >> 23;
+			significand++;
+		}
+		else if ((significand & 0x7FFFFF) == 0x400000)
+		{
+			if ((significand & 0x800000) == 1)
+			{
+				significand = significand >> 23;
+				significand++;
+			}
+			else
+				significand = significand >> 23;
+		}
+		else
+		{
+			significand = significand >> 23;
+		}
+		
 		addOneToExponent = false;
 	}
 
