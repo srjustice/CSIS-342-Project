@@ -16,6 +16,10 @@ using namespace std;
 #define MAX_EXPONENT 254
 #define MIN_EXPONENT 0
 #define BIAS 127
+#define POSITIVE 0
+#define NEGATIVE 1
+#define NEGATIVE_ZERO 0x80000000;
+#define POSITIVE_ZERO 0x00000000;
 #define PRECISION 6
 #define WIDTH 8
 
@@ -127,7 +131,13 @@ unsigned int multiply(unsigned int operand1, unsigned int operand2)
 
 	//If either operand is zero, return 0 as the product
 	if (isZero(operand1) || isZero(operand2))
-		return 0;
+	{
+		//If one of the operands is negative, return negative zero (0x80000000)
+		if (getNewSign(operand1, operand2) == NEGATIVE)
+			return NEGATIVE_ZERO;
+		
+		return POSITIVE_ZERO;	//Otherwise, return positive zero (0x00000000)
+	}
 
 	significandProduct = getSignificandProduct(operand1, operand2, addOneToExponent);	//Multiply the significands
 	exponentSum = getExponentSum(operand1, operand2, addOneToExponent);			//Add the exponents
@@ -283,9 +293,9 @@ int getSignedExponentSum(unsigned int exponent1, unsigned int exponent2, bool ad
 unsigned int getNewSign(unsigned int operand1, unsigned int operand2)
 {
 	if (getSign(operand1) == getSign(operand2))
-		return 0;			//If the signs are the same, return a positive sign
+		return POSITIVE;			//If the signs are the same, return a positive sign
 	else
-		return 1;			//Otherwise, return a negative sign
+		return NEGATIVE;			//Otherwise, return a negative sign
 }
 
 unsigned int getSign(unsigned int operand)
