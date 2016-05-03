@@ -46,14 +46,14 @@ int main()
 	unsigned int operand2;		//Second operand
 	unsigned int product;		//Product of the operands
 	
-	cout << "Running Floating Point Multiplication Emulator" << endl;
 	cout << "Sam Justice - CSIS 342-001, Spring 2016 - Floating Point Multiplication Emulator" << endl << endl;
 
 	//Open the input file
 	fin.open(inputFile);
 
 	//Close the program if the input file cannot be opened
-	if (!fin) {
+	if (!fin) 
+	{
 		cout << "ERROR: Input file \"" << inputFile << "\" could not be opened." << endl << endl;
 		
 		cout << "Enter any key to end execution of this program   . . .   ";
@@ -110,7 +110,7 @@ int main()
 		}
 		catch (exception& error)
 		{
-			//Print to the console that an overflow or underflow error occurred
+			//Print to the console that an overflow or underflow occurred
 			cout << error.what() << endl << endl;
 		}
 	}
@@ -162,12 +162,15 @@ unsigned int getSignificandProduct(unsigned int operand1, unsigned int operand2,
 	//Multiply the significands and put the product into an unsigned long long
 	significandProduct = unsigned long long(significandOp1) * unsigned long long(significandOp2);	
 	
-	//Normalize the product of multiplying the significands
+	//Normalize the product obtained by multiplying the significands
 	significandProduct = normalize(significandProduct, addOneToExponent);
 
 	return significandProduct;
 }
 
+//I decided not to replace the shifts and masks in this function with named constants because I thought it
+//actually detracted from the readability of the function's code. I think leaving the values of the shifts
+//and masks makes it easier to visualize what I am doing in this function.
 unsigned long long normalize(unsigned long long significand, bool& addOneToExponent)
 {
 	//Check if the 48th bit is a one
